@@ -53,6 +53,11 @@ function bind(C, bindProps: BindProps) {
   return class extends Component<any, BindState> {
     state = { data: null, error: null };
     prevMatches = null;
+    componentRef;
+
+    private onReady() {
+      if (this.props.onReady) this.props.onReady();
+    }
 
     async loadData() {
       if (equal(this.props.matches, this.prevMatches)) return;
@@ -75,7 +80,8 @@ function bind(C, bindProps: BindProps) {
       const { data, error } = this.state;
       if (error) return <ErrorPage message={error} />;
       if (!data) return <Loading />;
-      return <C {...this.props} {...data} />;
+      this.onReady();
+      return <C ref={r => (this.componentRef = r)} {...this.props} {...data} />;
     }
   };
 }

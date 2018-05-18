@@ -102,7 +102,6 @@ class DatabaseFB implements Database {
       title: "",
       updated: firebase.firestore.FieldValue.serverTimestamp()
     };
-    console.log({ newDoc });
     const docRef = await nbCollection.add(newDoc);
     return docRef.id;
   }
@@ -123,7 +122,6 @@ class DatabaseFB implements Database {
       title: "",
       updated: firebase.firestore.FieldValue.serverTimestamp()
     };
-    console.log({ newDoc });
     const docRef = await nbCollection.add(newDoc);
     return docRef.id;
   }

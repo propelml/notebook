@@ -15,22 +15,6 @@
 // tslint:disable:variable-name
 // This is the propelml.org website. It is used both server-side and
 // client-side for generating HTML.
-import { Component, h, render } from "preact";
-import { Home } from "./components/home";
-import * as db from "./db";
-import * as nb from "./notebook_root";
-import * as types from "./types";
-
-export interface Page {
-  title: string;
-  path: string;
-  root: any;
-  route: RegExp;
-}
-
-export function renderPage(p: Page): void {
-  render(h(p.root, null), document.body, document.body.children[0]);
-}
 
 export let firebaseUrls = [
   "https://www.gstatic.com/firebasejs/4.9.0/firebase.js",
@@ -67,62 +51,3 @@ export function getHTML(title, markup) {
   </body>
 </html>`;
 }
-
-export interface RouterState {
-  userInfo?: types.UserInfo;
-  loadingAuth: boolean;
-}
-
-// The root of all pages of the propel website.
-// Handles auth.
-export class Router extends Component<any, RouterState> {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loadingAuth: true,
-      userInfo: null
-    };
-  }
-
-  unsubscribe: db.UnsubscribeCb;
-  componentWillMount() {
-    this.unsubscribe = db.active.subscribeAuthChange(userInfo => {
-      this.setState({ loadingAuth: false, userInfo });
-    });
-  }
-
-  componentWillUnmount() {
-    this.unsubscribe();
-  }
-
-  render() {
-    console.log("document.location.pathname", document.location.pathname);
-    const page = route(document.location.pathname);
-    return h(page.root, { userInfo: this.state.userInfo });
-  }
-}
-
-export function route(pathname: string): Page {
-  for (const page of pages) {
-    if (pathname.match(page.route)) {
-      return page;
-    }
-  }
-  // TODO 404 page
-  return null;
-}
-
-export const pages: Page[] = [
-  {
-    title: "Propel ML",
-    path: "index.html",
-    root: Home,
-    route: /^\/(index.html)?$/
-  },
-  {
-    title: "Propel Notebook",
-    path: "notebook.html",
-    root: nb.NotebookRoot,
-    route: /^\/notebook/
-  }
-];

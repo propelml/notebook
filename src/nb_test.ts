@@ -1,23 +1,12 @@
 import { h, render, rerender } from "preact";
 import { testBrowser } from "../tools/tester";
+import { NotebookPage, ProfilePage } from "./app";
 import { cellExecuteQueue } from "./components/cell";
 import { Notebook } from "./components/notebook";
 import * as db from "./db";
-import * as nb from "./notebook_root";
 import { assert, assertEqual, createResolvable, delay } from "./util";
 
 const DOC_TITLE = "Anonymous Notebook";
-
-testBrowser(async function notebook_NotebookRoot() {
-  const mdb = db.enableMock();
-  resetPage();
-  const el = h(nb.NotebookRoot, {});
-  render(el, document.body);
-  await flush();
-  assertEqual(mdb.counts, { queryLatest: 1 });
-  const c = document.body.getElementsByTagName("div")[0];
-  assertEqual(c.className, "notebook");
-});
 
 testBrowser(async function notebook_Notebook() {
   const mdb = db.enableMock();
@@ -140,7 +129,7 @@ testBrowser(async function notebook_profile() {
 });
 
 testBrowser(async function notebook_executeQueue() {
-  const { notebookRef } = await renderAnonNotebook();
+  const notebookRef = await renderAnonNotebook();
   // All the cells must be executed now.
   assertEqual(cellExecuteQueue.length, 0);
   const cell1 = await notebookRef.insertCell(2, "a = 0");
@@ -163,7 +152,7 @@ testBrowser(async function notebook_executeQueue() {
 
 testBrowser(async function notebook_urlImport() {
   db.enableMock();
-  const { notebookRef } = await renderAnonNotebook();
+  const notebookRef = await renderAnonNotebook();
   const testdataUrl = `${location.origin}/repo/src/testdata`;
 
   const cell1 = await notebookRef.insertCell(1, `
@@ -196,27 +185,32 @@ function resetPage() {
 function renderProfile(profileUid: string) {
   const promise = createResolvable();
   resetPage();
-  const el = h(nb.NotebookRoot, {
-    onReady: promise.resolve,
-    profileUid
+  const el = h(ProfilePage, {
+    matches: {
+      userId: profileUid
+    },
+    onReady: promise.resolve
   });
   render(el, document.body);
   return promise;
 }
 
-async function renderAnonNotebook(): Promise<nb.NotebookRoot> {
+async function renderAnonNotebook(): Promise<Notebook> {
   const promise = createResolvable();
   resetPage();
-  let notebookRoot: nb.NotebookRoot;
-  const el = h(nb.NotebookRoot, {
-    nbId: "default",
+  let notebookRoot;
+  const el = h(NotebookPage, {
+    matches: {
+      nbId: "default"
+    },
     onReady: promise.resolve,
-    ref: n => (notebookRoot = n)
+    ref: ref => (notebookRoot = ref)
   });
   render(el, document.body);
   await promise;
-  await notebookRoot.notebookRef.isReady;
-  return notebookRoot;
+  const notebookRef = notebookRoot.componentRef;
+  await notebookRef.isReady;
+  return notebookRef;
 }
 
 async function renderNotebook(): Promise<Notebook> {

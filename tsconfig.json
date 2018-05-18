@@ -19,6 +19,7 @@
     "preserveConstEnums": true,
     "pretty": true,
     "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
     "target": "es2017"
   },
   "exclude": ["build", "deps", "node_modules", "src/testdata/"]

@@ -35,7 +35,7 @@ export interface NotebookProps {
   save?: (doc: types.NotebookDoc) => void;
   initialDoc?: types.NotebookDoc;
   userInfo?: types.UserInfo; // Info about currently logged in user.
-  clone?: () => void;
+  clone?: (doc: types.NotebookDoc) => void;
 }
 
 export interface NotebookState {
@@ -178,12 +178,7 @@ export class Notebook extends Component<NotebookProps, NotebookState> {
     this.active = cellId;
   }
 
-  onClone() {
-    if (this.props.clone) this.props.clone();
-  }
-
-  save() {
-    if (!this.props.save) return;
+  toDoc(): types.NotebookDoc {
     const cells = [];
     for (const key of this.state.order) {
       cells.push(this.state.codes.get(key));
@@ -199,7 +194,15 @@ export class Notebook extends Component<NotebookProps, NotebookState> {
       title: this.state.title,
       updated: new Date()
     };
-    this.props.save(doc);
+    return doc;
+  }
+
+  onClone() {
+    if (this.props.clone) this.props.clone(this.toDoc());
+  }
+
+  save() {
+    if (this.props.save) this.props.save(this.toDoc());
   }
 
   handleTitleChange(event) {

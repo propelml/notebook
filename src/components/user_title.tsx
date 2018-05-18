@@ -17,27 +17,20 @@ import { h } from "preact";
 import * as types from "../types";
 import { Avatar } from "./avatar";
 
-export function profileLink(
-  u: types.UserInfo,
-  text: string = null
-): JSX.Element {
-  const href = window.location.origin + "/notebook?profile=" + u.uid;
-  return (
-    <a class="profile-link" href={href}>
-      {text ? text : u.displayName}
-    </a>
-  );
-}
-
 export interface UserTitleProps {
   userInfo: types.UserInfo;
 }
 
 export function UserTitle(props: UserTitleProps): JSX.Element {
+  const href = window.location.origin + "/user/" + props.userInfo.uid;
   return (
     <div class="nb-listing-header-title">
       <Avatar userInfo={props.userInfo} />
-      <h2>{profileLink(props.userInfo)}</h2>
+      <h2>
+        <a class="profile-link" href={href} >
+          {props.userInfo.displayName}
+        </a>
+      </h2>
     </div>
   );
 }

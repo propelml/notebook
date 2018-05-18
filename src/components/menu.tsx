@@ -26,6 +26,7 @@ export interface UserMenuProps {
 
 export function UserMenu(props): JSX.Element {
   if (props.userInfo) {
+    // TODO "Your notebooks" link
     return (
       <div class="dropdown">
         <Avatar size={32} userInfo={props.userInfo} />

@@ -27,6 +27,7 @@
     "node-sass": "^4.9.0",
     "parcel-bundler": "^1.8.1",
     "parcel-plugin-markdown": "^0.3.1",
+    "path-to-regexp": "^2.2.1",
     "preact": "^8.2.7",
     "prettier": "^1.12.1",
     "puppeteer": "^0.13.0",

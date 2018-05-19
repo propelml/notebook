@@ -14,14 +14,15 @@
  */
 
 import { h } from "preact";
+import { Link } from "./link";
 
 export function Footer(): JSX.Element {
   return (
     <div class="footer">
-      <a href="/references">References</a>
-      <a href="/docs">Documentation</a>
-      <a href="https://github.com/propelml/propel">GitHub</a>
-      <a href="mailto:propelml@gmail.com">Contact</a>
+      <Link href="/references">References</Link>
+      <Link href="/docs">Documentation</Link>
+      <Link href="https://github.com/propelml/propel">GitHub</Link>
+      <Link href="mailto:propelml@gmail.com">Contact</Link>
     </div>
   );
 }

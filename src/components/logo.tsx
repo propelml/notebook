@@ -14,6 +14,7 @@
  */
 
 import { h } from "preact";
+import { Link } from "./link";
 
 export interface PropelLogoProps {
   subtitle?: string;
@@ -26,7 +27,7 @@ export function PropelLogo(props: PropelLogoProps): JSX.Element {
   if (props.subtitle) {
     Subtitle = (
       <h2>
-        <a href={props.subtitleLink || "/"}>{props.subtitle}</a>
+        <Link href={props.subtitleLink || "/"}>{props.subtitle}</Link>
       </h2>
     );
   }
@@ -45,7 +46,7 @@ export function PropelLogo(props: PropelLogoProps): JSX.Element {
       <div class="global-title">
         <div class="global-main-title">
           <h1>
-            <a href="/">Propel</a>
+            <Link href="/">Propel</Link>
           </h1>
         </div>
         <div class="global-sub-title">{Subtitle}</div>

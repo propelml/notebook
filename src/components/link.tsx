@@ -14,24 +14,15 @@
  */
 
 import { h } from "preact";
-import * as types from "../types";
-import { Avatar } from "./avatar";
-import { Link } from "./link";
+import { push } from "../router";
 
-export interface UserTitleProps {
-  userInfo: types.UserInfo;
+export interface LinkProps extends JSX.HTMLAttributes {
+  href: string;
 }
 
-export function UserTitle(props: UserTitleProps): JSX.Element {
-  const href = "/user/" + props.userInfo.uid;
+export function Link(props: LinkProps) {
+  const { href, children, ...otherProps } = props;
   return (
-    <div class="nb-listing-header-title">
-      <Avatar userInfo={props.userInfo} />
-      <h2>
-        <Link class="profile-link" href={href} >
-          {props.userInfo.displayName}
-        </Link>
-      </h2>
-    </div>
+    <a onClick={() => push(href)} {...otherProps} > { children } </a>
   );
 }

@@ -15,7 +15,7 @@
 
 import { Component, h } from "preact";
 import * as db from "./db";
-import { pushState, Router } from "./router";
+import { push, Router } from "./router";
 import * as types from "./types";
 import { equal } from "./util";
 
@@ -105,12 +105,12 @@ const anonDoc = {
 async function onNewNotebook() {
   const nbId = await db.active.create();
   // Redirect to new notebook.
-  pushState(`/notebook/${nbId}`);
+  push(`/notebook/${nbId}`);
 }
 
 async function onOpenNotebook(nbId: string) {
   // Redirect to notebook.
-  pushState(`/notebook/${nbId}`);
+  push(`/notebook/${nbId}`);
 }
 
 export const RecentPage = bind(Recent, {
@@ -164,7 +164,7 @@ export const NotebookPage = bind(Notebook, {
     const cb = async doc => {
       const cloneId = await db.active.clone(doc);
       // Redirect to new notebook.
-      pushState(`/notebook/${cloneId}`);
+      push(`/notebook/${cloneId}`);
     };
     return Promise.resolve(cb);
   }

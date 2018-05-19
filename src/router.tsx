@@ -13,11 +13,13 @@
    limitations under the License.
  */
 
+import { createHashHistory } from "history";
 import pathToRegexp from "path-to-regexp";
 import { cloneElement, Component, VNode } from "preact";
 
 let id = 0;
 const listeners = new Map<number, () => void>();
+const history = createHashHistory();
 const regexCache = new Map<string, RegExp>();
 const regexKeysCache = new Map<string, string[]>();
 
@@ -26,7 +28,7 @@ export interface MatchedResult {
 }
 
 export function match(pattern: string): false | MatchedResult {
-  const path = window.location.pathname;
+  const path = history.location.pathname;
   let regex = regexCache.get(pattern);
   let keys = regexKeysCache.get(pattern);
   if (!regex) {
@@ -45,24 +47,6 @@ export function match(pattern: string): false | MatchedResult {
     data[key] = re[1 + Number(i)];
   }
   return data;
-}
-
-function onPopState() {
-  const mapValues = listeners.values();
-  for (const cb of mapValues) {
-    cb();
-  }
-}
-
-window.onpopstate = onPopState;
-
-export function pushState(url) {
-  window.history.pushState({}, document.title, url);
-  onPopState();
-}
-
-export function back() {
-  window.history.back();
 }
 
 export interface RouterChildProps {
@@ -106,8 +90,8 @@ export class Router extends Component<RouterProps, RouterState> {
   }
 
   componentWillMount() {
-    this.id = ++id;
-    listeners.set(id, this.onLocationChange.bind(this));
+    this.id = id++;
+    listeners.set(this.id, this.onLocationChange.bind(this));
     this.onLocationChange();
   }
 
@@ -127,3 +111,18 @@ export class Router extends Component<RouterProps, RouterState> {
     return cloneElement(activeEl, newProps);
   }
 }
+
+export function push(url) {
+  history.push(url);
+}
+
+export function back() {
+  history.goBack();
+}
+
+history.listen(() => {
+  const listenerCbs = listeners.values();
+  for (const cb of listenerCbs) {
+    cb();
+  }
+});

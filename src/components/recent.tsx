@@ -15,9 +15,9 @@
 
 import { Component, h } from "preact";
 import * as types from "../types";
+import { Link } from "./link";
 import { NotebookList } from "./list";
 import { NewNotebookButton } from "./new_notebook_button";
-import { profileLink } from "./user_title";
 
 export interface RecentProps {
   notebooks: types.NbInfo[];
@@ -52,7 +52,14 @@ export class Recent extends Component<RecentProps, RecentState> {
     if (this.props.userInfo) {
       profileLinkEl = (
         <div class="nb-listing-header">
-          <h2>{profileLink(this.props.userInfo, "Your Notebooks")}</h2>
+          <h2>
+            <Link
+              class="profile-link"
+              href={`/user/${this.props.userInfo.uid}`}
+            >
+              {this.props.userInfo.displayName}
+            </Link>
+          </h2>
         </div>
       );
     }

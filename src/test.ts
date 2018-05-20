@@ -3,4 +3,5 @@ import "./fetch_test";
 import "./inspector_test";
 import "./nb_test";
 import "./nb_transpiler_test";
+import "./router_test";
 import "./rpc_test";

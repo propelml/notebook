@@ -185,7 +185,7 @@ function resetPage() {
 function renderProfile(profileUid: string) {
   const promise = createResolvable();
   resetPage();
-  const el = h(ProfilePage, {
+  const el = h(ProfilePage as any, {
     matches: {
       userId: profileUid
     },
@@ -199,7 +199,7 @@ async function renderAnonNotebook(): Promise<Notebook> {
   const promise = createResolvable();
   resetPage();
   let notebookRoot;
-  const el = h(NotebookPage, {
+  const el = h(NotebookPage as any, {
     matches: {
       nbId: "default"
     },

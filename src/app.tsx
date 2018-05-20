@@ -13,7 +13,7 @@
    limitations under the License.
  */
 
-import { Component, h } from "preact";
+import { Component, ComponentConstructor, h } from "preact";
 import * as db from "./db";
 import { push, Router } from "./router";
 import * as types from "./types";
@@ -28,14 +28,33 @@ import { Notebook } from "./components/notebook";
 import { Profile } from "./components/profile";
 import { Recent } from "./components/recent";
 
-interface BindProps {
-  [key: string]: (props: any) => Promise<any>;
+type Partial<T> = { [K in keyof T]?: T[K] };
+
+type ReadOnly<T> = { readonly [K in keyof T]: T[K] };
+
+interface PageProps {
+  path: string;
+  matches?: { [key: string]: string };
+  onReady?: () => void;
 }
 
-interface BindState {
-  data: { [key: string]: string };
+type BindProps<P> = {
+  [K in keyof P]?: (props: ReadOnly<BoundProps<P>>) => Promise<P[K]>
+};
+
+type BoundProps<P> = PageProps & BindProps<P>;
+
+interface BindStateNormal<P> {
+  data: { [K in keyof P]: P[K] };
+  error: null;
+}
+
+interface BindStateError {
+  data: null;
   error: string;
 }
+
+type BindState<P> = BindStateNormal<P> | BindStateError;
 
 /**
  * This react HOC can be used to bind result of some async
@@ -49,8 +68,8 @@ interface BindState {
  *     }
  *   });
  */
-function bind(C, bindProps: BindProps) {
-  return class extends Component<any, BindState> {
+function bind<P>(C: ComponentConstructor<P, {}>, bindProps: BindProps<P>) {
+  return class extends Component<BoundProps<P>, BindState<P>> {
     state = { data: null, error: null };
     prevMatches = null;
     componentRef;
@@ -62,7 +81,7 @@ function bind(C, bindProps: BindProps) {
     async loadData() {
       if (equal(this.props.matches, this.prevMatches)) return;
       this.prevMatches = this.props.matches;
-      const data = {};
+      const data: Partial<P> = {};
       for (const key in bindProps) {
         if (!bindProps[key]) continue;
         try {
@@ -72,7 +91,7 @@ function bind(C, bindProps: BindProps) {
           return;
         }
       }
-      this.setState({ data, error: null });
+      this.setState({ data: data as P, error: null });
     }
 
     render() {
@@ -170,7 +189,7 @@ export const NotebookPage = bind(Notebook, {
   }
 });
 
-export const HomePage = bind(Home, {});
+export const HomePage = bind(Home as any, {});
 // tslint:enable:variable-name
 
 export interface AppState {

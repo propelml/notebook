@@ -106,7 +106,7 @@ function bind<P>(C: ComponentConstructor<P, {}>, bindProps: BindProps<P>) {
 }
 
 // An anonymous notebook doc for when users aren't logged in
-const anonDoc = {
+export const anonDoc = {
   anonymous: true,
   cells: [],
   created: new Date(),

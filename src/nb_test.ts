@@ -1,6 +1,6 @@
 import { h, render, rerender } from "preact";
 import { testBrowser } from "../tools/tester";
-import { NotebookPage, ProfilePage } from "./app";
+import { anonDoc, NotebookPage, ProfilePage } from "./app";
 import { cellExecuteQueue } from "./components/cell";
 import { Notebook } from "./components/notebook";
 import * as db from "./db";
@@ -218,16 +218,9 @@ async function renderNotebook(): Promise<Notebook> {
   let notebook: Notebook;
   const nb = h(Notebook as any, {
     initialDoc: {
-      anonymous: true,
+      ...anonDoc,
       cells: ["let a = 4", "let b = 5"],
-      created: new Date(),
-      owner: {
-        displayName: "Anonymous",
-        photoURL: require("./img/anon_profile.png"),
-        uid: ""
-      },
       title: DOC_TITLE,
-      updated: new Date()
     },
     ref: ref => (notebook = ref)
   });

@@ -21,16 +21,17 @@
  */
 
 import { fork, isMaster } from "cluster";
-import * as http from "http";
+import * as opn from "opn";
 import * as WebSocket from "ws";
-import { ClusterRPC } from "./rpc";
+import { ClusterRPC } from "../src/rpc";
+import { createHTTPServer } from "./server";
 
 // Constants
 const PORT = 8081;
 
 if (isMaster) {
   // Start a websocket server in master process.
-  const server = http.createServer();
+  const server = createHTTPServer();
   const wss = new WebSocket.Server({ server });
 
   wss.on("connection", (ws: WebSocket) => {
@@ -38,6 +39,8 @@ if (isMaster) {
     // sandbox.ts in there.
     const worker = fork();
     const rpc = new ClusterRPC(worker, true);
+    // To prevent "channel not active." error.
+    rpc.start({});
     // Route all messages from child process to client.
     worker.on("message", msg => {
       const message = JSON.stringify(msg);
@@ -60,9 +63,10 @@ if (isMaster) {
   });
 
   server.listen(PORT, () => {
-    console.log("WebSockeet server started on port %s.", PORT);
+    console.log("Propel server started on port %s.", PORT);
+    opn(`http://localhost:${PORT}/?ws=${PORT}`);
   });
 } else {
-  console.log("[%s] Worker started", process.pid);
-  require("./sandbox.ts");
+  console.log("[%s] Worker started.", process.pid);
+  require("../src/sandbox.ts");
 }

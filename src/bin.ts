@@ -43,14 +43,19 @@ if (isMaster) {
       const message = JSON.stringify(msg);
       ws.send(message);
     });
+    // Route all valid messages to the child process.
     ws.on("message", rawData => {
       try {
-        // Route all valid messages to the child process.
         const data = JSON.parse(String(rawData));
         rpc.call(data.type, data);
       } catch (e) {
         console.error(e);
       }
+    });
+    // Kill a child process whenever user disconnects.
+    ws.on("close", () => {
+      rpc.stop();
+      worker.kill();
     });
   });
 

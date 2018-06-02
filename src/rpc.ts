@@ -213,3 +213,27 @@ export class WebSocketRPC extends RPCBase {
     this.socket.removeEventListener("message", this.receive);
   }
 }
+
+export class ClusterRPC extends RPCBase {
+  constructor(private worker) {
+    super();
+  }
+
+  protected send(message: Message): void {
+    this.worker.send(message);
+  }
+
+  private receive = (message: Message) => {
+      super.onMessage(message);
+  }
+
+  start(handlers: RpcHandlers): void {
+    super.start(handlers);
+    this.worker.on("message", this.receive);
+  }
+
+  stop(): void {
+    super.stop();
+    this.worker.removeListener("message");
+  }
+}

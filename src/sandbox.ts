@@ -19,9 +19,9 @@ import { fetchArrayBuffer } from "./fetch";
 import * as matplotlib from "./matplotlib";
 import { Transpiler } from "./nb_transpiler";
 import { setOutputHandler } from "./output_handler";
-import { RPC, WindowRPC } from "./rpc";
+import { ClusterRPC, RPC, WindowRPC } from "./rpc";
 import { describe, InspectorData, InspectorOptions } from "./serializer";
-import { global, globalEval, URL } from "./util";
+import { global, globalEval, IS_WEB, URL } from "./util";
 
 async function fetchText(url: string) {
   const ab = await fetchArrayBuffer(url);
@@ -77,10 +77,15 @@ let lastExecutedCellId: CellId = null;
 
 const transpiler = new Transpiler();
 
-const channelId = document
-  .querySelector("meta[name=rpc-channel-id]")
-  .getAttribute("content");
-const rpc: RPC = new WindowRPC(window.parent, channelId);
+const rpc = function(): RPC {
+  if (IS_WEB) {
+    const channelId = document
+      .querySelector("meta[name=rpc-channel-id]")
+      .getAttribute("content");
+    return new WindowRPC(window.parent, channelId);
+  }
+  return new ClusterRPC(process);
+}();
 rpc.start({ runCell });
 
 async function runCell(source: string, cellId: CellId): Promise<void> {
@@ -98,7 +103,7 @@ async function runCell(source: string, cellId: CellId): Promise<void> {
     rpc.call("print", cellId, message);
     // When running tests, rethrow any errors. This ensures that errors
     // occurring during notebook cell evaluation result in test failure.
-    if (window.navigator.webdriver) {
+    if (IS_WEB && window.navigator.webdriver) {
       throw e;
     }
   }
@@ -152,17 +157,20 @@ setOutputHandler({
   }
 });
 
-window.addEventListener("error", (ev: ErrorEvent) => {
-  let cellId, message;
-  if (ev.error != null) {
-    cellId = guessCellId(ev.error);
-    message = transpiler.formatException(ev.error);
-  } else {
-    cellId = guessCellId();
-    message = ev.message;
-  }
-  rpc.call("print", cellId, message);
-});
-
-// TODO: also handle unhandledrejection. This should work in theory, in Chrome
-// at least; however I was unable to trigger this event.
+if (IS_WEB) {
+  // TODO: also handle unhandledrejection. This should work in theory, in Chrome
+  // at least; however I was unable to trigger this event.
+  window.addEventListener("error", (ev: ErrorEvent) => {
+    let cellId, message;
+    if (ev.error != null) {
+      cellId = guessCellId(ev.error);
+      message = transpiler.formatException(ev.error);
+    } else {
+      cellId = guessCellId();
+      message = ev.message;
+    }
+    rpc.call("print", cellId, message);
+  });
+} else {
+  // TODO catch errors in Node.js
+}

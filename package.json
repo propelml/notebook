@@ -46,7 +46,7 @@
     "tslint-no-circular-imports": "^0.3.0",
     "typescript": "^2.8.3",
     "vega-lib": "^3.2.1",
-    "ws": "^5.0.0"
+    "ws": "^5.2.0"
   },
   "browserslist": [
     ">5%"

@@ -215,12 +215,12 @@ export class WebSocketRPC extends RPCBase {
 }
 
 export class ClusterRPC extends RPCBase {
-  constructor(private worker) {
+  constructor(private process, private calledFromMaster = false) {
     super();
   }
 
   protected send(message: Message): void {
-    this.worker.send(message);
+    this.process.send(message);
   }
 
   private receive = (message: Message) => {
@@ -229,11 +229,13 @@ export class ClusterRPC extends RPCBase {
 
   start(handlers: RpcHandlers): void {
     super.start(handlers);
-    this.worker.on("message", this.receive);
+    if (!this.calledFromMaster) {
+      this.process.on("message", this.receive);
+    }
   }
 
   stop(): void {
     super.stop();
-    this.worker.removeListener("message");
+    this.process.removeListener("message");
   }
 }

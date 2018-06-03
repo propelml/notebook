@@ -15,8 +15,8 @@
 
 import { escape } from "he";
 import { OutputHandlerDOM } from "./output_handler_dom";
-import { RPC, WindowRPC } from "./rpc";
-import { randomString } from "./util";
+import { RPC, WebSocketRPC, WindowRPC } from "./rpc";
+import { createResolvable, randomString } from "./util";
 
 function createIframe(rpcChannelId): HTMLIFrameElement {
   const base = new URL("/sandbox", window.document.baseURI).href;
@@ -49,32 +49,48 @@ export type CellId = number | string;
 export class VM {
   private iframe: HTMLIFrameElement;
   private RPC: RPC;
+  private ws: WebSocket;
   readonly id: string;
+  static wsServer = null;
 
   constructor(private rpcHandler) {
     this.id = randomString();
   }
 
-  init() {
+  async init() {
     if (this.RPC) return;
-    this.iframe = createIframe(this.id);
-    this.RPC = new WindowRPC(this.iframe.contentWindow, this.id);
-    this.RPC.start(this.rpcHandler);
+    if (VM.wsServer) {
+      console.log("Connecting to ws-backend: %s.", VM.wsServer);
+      const wsPromise = createResolvable();
+      this.ws = new WebSocket(VM.wsServer);
+      this.ws.onopen = wsPromise.resolve;
+      await wsPromise;
+      this.RPC = new WebSocketRPC(this.ws);
+      this.RPC.start(this.rpcHandler);
+    } else {
+      this.iframe = createIframe(this.id);
+      this.RPC = new WindowRPC(this.iframe.contentWindow, this.id);
+      this.RPC.start(this.rpcHandler);
+    }
   }
 
   async exec(code: string, id: CellId) {
-    this.init();
+    await this.init();
     await this.RPC.call("runCell", code, id);
   }
 
   destroy() {
     if (!this.RPC) return;
     this.RPC.stop();
-    if (this.iframe.parentNode) {
+    if (this.iframe && this.iframe.parentNode) {
       this.iframe.parentNode.removeChild(this.iframe);
+    }
+    if (this.ws) {
+      this.ws.close();
     }
     this.RPC = null;
     this.iframe = null;
+    this.ws = null;
   }
 }
 

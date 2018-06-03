@@ -23,7 +23,6 @@
 import { fork, isMaster } from "cluster";
 import * as opn from "opn";
 import * as WebSocket from "ws";
-import { ClusterRPC } from "../src/rpc";
 import { createHTTPServer } from "./server";
 
 // Constants
@@ -38,33 +37,37 @@ if (isMaster) {
     // For now, let's create a new process for each connection and load
     // sandbox.ts in there.
     const worker = fork();
-    const rpc = new ClusterRPC(worker, true);
-    // To prevent "channel not active." error.
-    rpc.start({});
     // Route all messages from child process to client.
     worker.on("message", msg => {
       const message = JSON.stringify(msg);
       ws.send(message);
     });
+    // Handle worker exit.
+    worker.on("exit", () => {
+      console.log("[%s] Worker exited.", worker.process.pid);
+      if (ws.readyStatus === ws.OPEN) {
+        ws.close();
+      }
+    });
     // Route all valid messages to the child process.
     ws.on("message", rawData => {
       try {
         const data = JSON.parse(String(rawData));
-        rpc.call(data.type, data);
+        worker.send(data);
       } catch (e) {
         console.error(e);
       }
     });
     // Kill a child process whenever user disconnects.
     ws.on("close", () => {
-      rpc.stop();
       worker.kill();
     });
   });
 
   server.listen(PORT, () => {
     console.log("Propel server started on port %s.", PORT);
-    opn(`http://localhost:${PORT}/?ws=${PORT}`);
+    const wsUrl = `ws://localhost:${PORT}`;
+    opn(`http://localhost:${PORT}/#ws/${encodeURIComponent(wsUrl)}`);
   });
 } else {
   console.log("[%s] Worker started.", process.pid);

@@ -224,7 +224,7 @@ export class ClusterRPC extends RPCBase {
   }
 
   private receive = (message: Message) => {
-      super.onMessage(message);
+    super.onMessage(message);
   }
 
   start(handlers: RpcHandlers): void {
@@ -236,6 +236,6 @@ export class ClusterRPC extends RPCBase {
 
   stop(): void {
     super.stop();
-    this.process.removeListener("message");
+    this.process.removeListener("message", this.receive);
   }
 }

@@ -18,6 +18,7 @@ import * as db from "./db";
 import { push, Router } from "./router";
 import * as types from "./types";
 import { equal } from "./util";
+import { VM } from "./vm";
 
 import { ErrorPage } from "./components/error";
 import { GlobalHeader } from "./components/header";
@@ -190,6 +191,25 @@ export const NotebookPage = bind(Notebook, {
 });
 
 export const HomePage = bind(Home as any, {});
+
+// TODO remove any
+export class WSSetupPage extends Component<any> {
+  componentWillMount() {
+    // TODO maybe /notebook/ws ?
+    setTimeout(() => push("/notebook/anonymous"), 2000);
+    console.log(this.props);
+    const ws = decodeURIComponent(this.props.matches.server);
+    VM.wsServer = ws;
+  }
+
+  render() {
+    return (
+      <div>
+        Use websocket server. { VM.wsServer }
+      </div>
+    );
+  }
+}
 // tslint:enable:variable-name
 
 export interface AppState {
@@ -226,6 +246,7 @@ export class App extends Component<{}, AppState> {
           <RecentPage path="/notebook" userInfo={userInfo} />
           <NotebookPage path="/notebook/:nbId" userInfo={userInfo} />
           <ProfilePage path="/user/:userId" userInfo={userInfo} />
+          <WSSetupPage path="/ws/:server" />
           <ErrorPage message="The page you're looking for doesn't exist." />
         </Router>
       </div>

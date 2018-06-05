@@ -153,7 +153,7 @@ export function downloadProgress(
     return;
   }
 
-  if (IS_NODE) {
+  if (IS_NODE && !process.stdout) {
     if (loaded === null && total === null) {
       // Write 7 spaces, so we can cover "100.00%".
       process.stdout.write(" ".repeat(7) + " \r");

@@ -77,14 +77,15 @@ if (isMaster) {
   console.log("[%s] Worker started.", process.pid);
   const sandboxCode = readFileSync("../build/website/sandbox.js").toString();
   const clusterRPC = new ClusterRPC(process);
-  // TODO We should not let user to have access to `process`.
-  //  const binding = process.binding('fs');
-  //  binding
   const sandbox = {
     Buffer,
     TextDecoder,
     clusterRPC,
-    process,
+    process: {
+      cwd: process.cwd,
+      env: process.env,
+      platform: process.platform
+    },
     require: safeRequire
   };
   vm.createContext(sandbox);

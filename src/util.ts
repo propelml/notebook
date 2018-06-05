@@ -32,7 +32,7 @@ export const process = IS_NODE ? globalEval("process") : null;
 // tslint:disable-next-line:variable-name
 export const Buffer = IS_NODE ? globalEval("Buffer") : null;
 
-if (IS_NODE) {
+if (IS_NODE && process.on) {
   process.on("unhandledRejection", error => {
     throw error;
   });

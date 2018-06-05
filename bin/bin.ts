@@ -21,8 +21,12 @@
  */
 
 import { fork, isMaster } from "cluster";
+import { readFileSync } from "fs";
 import * as opn from "opn";
+import { TextDecoder } from "util";
+import * as vm from "vm";
 import * as WebSocket from "ws";
+import { ClusterRPC } from "../src/rpc";
 import { createHTTPServer } from "./server";
 
 // Constants
@@ -71,5 +75,27 @@ if (isMaster) {
   });
 } else {
   console.log("[%s] Worker started.", process.pid);
-  require("../src/sandbox.ts");
+  const sandboxCode = readFileSync("../build/website/sandbox.js").toString();
+  const clusterRPC = new ClusterRPC(process);
+  // TODO We should not let user to have access to `process`.
+  //  const binding = process.binding('fs');
+  //  binding
+  const sandbox = {
+    Buffer,
+    TextDecoder,
+    clusterRPC,
+    process,
+    require: safeRequire
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(sandboxCode, sandbox);
+}
+
+function safeRequire(moduleName) {
+  const allowedModules = ["url", "http", "https"];
+  if (allowedModules.indexOf(moduleName) < 0) {
+    console.log(moduleName);
+    throw new Error("Calling require is forbidden.");
+  }
+  return require(moduleName);
 }

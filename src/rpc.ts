@@ -215,7 +215,7 @@ export class WebSocketRPC extends RPCBase {
 }
 
 export class ClusterRPC extends RPCBase {
-  constructor(private process, private calledFromMaster = false) {
+  constructor(private process) {
     super();
   }
 
@@ -229,9 +229,7 @@ export class ClusterRPC extends RPCBase {
 
   start(handlers: RpcHandlers): void {
     super.start(handlers);
-    if (!this.calledFromMaster) {
-      this.process.on("message", this.receive);
-    }
+    this.process.on("message", this.receive);
   }
 
   stop(): void {

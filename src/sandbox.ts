@@ -23,6 +23,8 @@ import { ClusterRPC, RPC, WindowRPC } from "./rpc";
 import { describe, InspectorData, InspectorOptions } from "./serializer";
 import { global, globalEval, IS_WEB, URL } from "./util";
 
+declare const clusterRPC: ClusterRPC;
+
 async function fetchText(url: string) {
   const ab = await fetchArrayBuffer(url);
   const enc = new TextDecoder();
@@ -84,7 +86,7 @@ const rpc = function(): RPC {
       .getAttribute("content");
     return new WindowRPC(window.parent, channelId);
   }
-  return new ClusterRPC(process);
+  return clusterRPC;
 }();
 rpc.start({ runCell });
 

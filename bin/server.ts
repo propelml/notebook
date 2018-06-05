@@ -27,6 +27,11 @@ export function createHTTPServer() {
   const server = http.createServer((req, res) => {
     const reqUrl = url.parse(req.url, true);
     const filePath = path.join(basePath, reqUrl.pathname);
+    if (!filePath.startsWith(basePath)) {
+      res.writeHead(403, { "Content-Type": "text/html; charset=utf-8" });
+      res.end("Access denied.");
+      return;
+    }
     fs.stat(filePath, (err, stat) => {
       let finalPath = filePath;
       if (err && err.code === "ENOENT" || stat.isDirectory()) {

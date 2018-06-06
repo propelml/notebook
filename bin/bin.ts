@@ -23,6 +23,7 @@
 import { fork, isMaster } from "cluster";
 import { readFileSync } from "fs";
 import * as opn from "opn";
+import * as path from "path";
 import { TextDecoder } from "util";
 import * as vm from "vm";
 import * as WebSocket from "ws";
@@ -31,6 +32,7 @@ import { createHTTPServer } from "./server";
 
 // Constants
 const PORT = 8081;
+const sandboxSrc = path.join(__dirname, "../build/website/sandbox.js");
 
 if (isMaster) {
   // Start a websocket server in master process.
@@ -71,11 +73,11 @@ if (isMaster) {
   server.listen(PORT, () => {
     console.log("Propel server started on port %s.", PORT);
     const wsUrl = `ws://localhost:${PORT}`;
-    opn(`http://localhost:${PORT}/#ws/${encodeURIComponent(wsUrl)}`);
+    opn(`http://localhost:${PORT}/#/?ws=${wsUrl}`);
   });
 } else {
   console.log("[%s] Worker started.", process.pid);
-  const sandboxCode = readFileSync("../build/website/sandbox.js").toString();
+  const sandboxCode = readFileSync(sandboxSrc).toString();
   const clusterRPC = new ClusterRPC(process);
   const sandbox = {
     Buffer,

@@ -15,6 +15,7 @@
 
 import { escape } from "he";
 import { OutputHandlerDOM } from "./output_handler_dom";
+import { getParameterByName } from "./router";
 import { RPC, WebSocketRPC, WindowRPC } from "./rpc";
 import { createResolvable, randomString } from "./util";
 
@@ -51,23 +52,27 @@ export class VM {
   private RPC: RPC;
   private ws: WebSocket;
   readonly id: string;
-  static wsServer = null;
+  readonly wsServer = null;
 
   constructor(private rpcHandler) {
     this.id = randomString();
+    this.wsServer = getParameterByName("ws");
   }
 
   async init() {
     if (this.RPC) return;
-    if (VM.wsServer) {
-      console.log("Connecting to ws-backend: %s.", VM.wsServer);
+    try {
+      if (!this.wsServer) throw new Error("");
+      console.log("Connecting to ws-backend: %s.", this.wsServer);
       const wsPromise = createResolvable();
-      this.ws = new WebSocket(VM.wsServer);
+      this.ws = new WebSocket(this.wsServer);
       this.ws.onopen = wsPromise.resolve;
       await wsPromise;
+      console.log("Connected to server.", this.wsServer);
       this.RPC = new WebSocketRPC(this.ws);
       this.RPC.start(this.rpcHandler);
-    } else {
+    } catch (e) {
+      console.log("Using iframe sandbox.", this.wsServer);
       this.iframe = createIframe(this.id);
       this.RPC = new WindowRPC(this.iframe.contentWindow, this.id);
       this.RPC.start(this.rpcHandler);

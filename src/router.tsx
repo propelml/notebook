@@ -113,6 +113,11 @@ export class Router extends Component<RouterProps, RouterState> {
 }
 
 export function push(url) {
+  const href = window.location.href;
+  if (href.indexOf("?") > -1) {
+    const queryString = href.substr(href.indexOf("?"));
+    url += queryString;
+  }
   history.push(url);
 }
 
@@ -126,3 +131,14 @@ history.listen(() => {
     cb();
   }
 });
+
+// https://stackoverflow.com/a/901144
+export function getParameterByName(name) {
+  const url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  const regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+  const results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return "";
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
